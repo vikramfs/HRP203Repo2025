@@ -1,5 +1,5 @@
-# Assignment #2 Repository
+# Assignment #2 Repository for Vikram Fielding-Singh
 
-This repository includes the simulated data for Assignment #2. Fork this repository and add your analysis as described in the canvas assignment.
+This repository includes simulated data and a brief analysis file per the instructions for Assignment 2.
 
-The csv file for `cohort` in the `raw-data` folder includes 5,000 observations with variables `smoke`, `female`, `age`, `cardiac`, and `cost`.
+The raw data is a csv file for `cohort` (located in the in the `raw-data` folder) includes 5,000 observations with variables `smoke`, `female`, `age`, `cardiac`, and `cost`.
