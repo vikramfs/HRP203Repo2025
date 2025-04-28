@@ -154,3 +154,5 @@ coef(adj_model)
 confint(adj_model)
 
 ```
+
+In this linear regression model, smoking is associated with 542 of additional cost.
