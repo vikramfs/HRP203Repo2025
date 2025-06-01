@@ -1,0 +1,158 @@
+---
+title: "HRP203 Assignment 2"
+author: "Vikram Fielding-Singh"
+format: html
+editor: visual
+---
+
+# Assignment 2
+
+This file executes a short analysis for HRP 203, Assignment 2. No generative AI technology was used to complete any portion of this work.
+
+The raw data is a cohort of 5000 simulated observations with the following variables: `smoke`, `female`, `age`, `cardiac`, and `cost`.
+
+## Load Packages
+
+```{r}
+#| label: package-load
+#| echo: false
+#| warning: false
+
+#Load packages
+pacman::p_load(pacman, tidyverse, rmarkdown, readxl, table1, ggplot2, geepack)
+```
+
+## Load Dataset
+
+```{r}
+#| label: data-load
+
+#Load data
+cohort <- read.csv("D:/VFS Classes/HRP 203/ReproMethodsAssignment2/raw-data/cohort.csv")
+```
+
+## Quick Look
+
+Have a quick look at the data.
+
+```{r}
+#| label: look
+
+#Quick look
+head(cohort)
+
+# Continuous variables - look at distribution and summary statistics, check for missing
+hist(cohort$age, breaks = 100)
+summary(cohort$age)
+hist(cohort$cost)
+summary(cohort$cost)
+table(is.na(cohort$age))
+table(is.na(cohort$cost))
+
+# Categorical variables
+table(cohort$female, useNA = "ifany")
+table(cohort$smoke, useNA = "ifany")
+table(cohort$cardiac, useNA = "ifany")
+
+
+```
+
+## Table 1
+
+Generate a Table 1 - will treat smoking as the primary exposure and cost as the primary outcome.
+
+```{r}
+#| label: table1
+
+#Some formatting
+cohort$smoke <- 
+  factor(cohort$smoke, levels=c(0,1),
+         labels=c("Nonsmoker", 
+                  "Smoker"))
+cohort$female <- 
+  factor(cohort$female, levels=c(0,1),
+         labels=c("Male", 
+                  "Female"))
+
+cohort$cardiac <- 
+  factor(cohort$cardiac, levels=c(0,1),
+         labels=c("No", 
+                  "Yes"))
+label(cohort$age)       <- "Age"
+label(cohort$female)    <- "Gender"
+label(cohort$cost)      <- "Cost"
+label(cohort$cardiac)   <- "Cardiac"
+label(cohort$smoke)     <- "Smoker"
+
+#Use table1 package because it's pretty straightforward
+table1(~age + female + cardiac + cost | smoke,
+       data=cohort, overall=c(left="Total"))
+
+```
+
+## Figures
+
+Generate some figures showing the relationships between variables of interest.
+
+```{r}
+#| label: figure1
+
+#Cost by smoking status
+ggplot(cohort, aes(x = smoke, y = cost, fill = smoke)) + 
+  geom_boxplot(alpha = 0.5, show.legend = FALSE) + #Make colors slightly transparent and suppress legend
+  labs(
+    x = "Smoking Status",
+    y = "Cost (USD)",
+    title = "Cost by Smoking Status"
+  ) +
+  theme_minimal() +  # White background
+  scale_fill_manual(values = c("blue", "darkgreen")) +
+  theme(
+    plot.title = element_text(hjust = 0.5),  # Center the title
+  )
+
+#Cost by gender
+ggplot(cohort, aes(x = female, y = cost, fill = female)) + 
+  geom_boxplot(alpha = 0.5, show.legend = FALSE) + #Make colors slightly transparent and suppress legend
+  labs(
+    x = "Female",
+    y = "Cost (USD)",
+    title = "Cost by Gender"
+  ) +
+  theme_minimal() +  # White background
+  scale_fill_manual(values = c("blue", "darkgreen")) +
+  theme(
+    plot.title = element_text(hjust = 0.5),  # Center the title
+  )
+
+#Age and cost scatter
+ggplot(cohort, aes(x = age, y = cost)) + 
+  geom_point(color = "blue", alpha = 0.7) +
+  labs(
+    x = "Age (years)",
+    y = "Cost (USD)",
+    title = "Age versus Cost",
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),  # Center the title
+  )
+
+
+```
+
+## Regression-Based Approach
+
+Run a quick linear regression to test the adjusted relationship between `smoke` and `cost`.
+
+```{r}
+#| label: regression
+
+#Regression
+adj_model <- lm(cost ~ age + female + smoke + cardiac, data=cohort)
+coef(adj_model)
+confint(adj_model)
+
+```
+
+In this linear regression model, smoking is associated with 542 of additional cost.
