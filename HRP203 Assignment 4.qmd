@@ -1,17 +1,22 @@
 ---
-title: "HRP203 Assignment 2"
-author: "Vikram Fielding-Singh"
-format: html
+title: "Association of Smoking with Cost in a Simulated Dataset for HRP 203"
+author:
+  - name: Vikram Fielding-Singh, MD, JD
+    affiliations:
+      - name: Department of Anesthesiology, Perioperative and Pain Medicine, Stanford University School of Medicine
+format: 
+  docx:
+    toc: false
+    number-sections: false
+    highlight-style: github
 editor: visual
+bibliography: HRP203.bib
+csl: american-medical-association.csl
 ---
 
-# Assignment 2
+## Background
 
-This file executes a short analysis for HRP 203, Assignment 2. No generative AI technology was used to complete any portion of this work.
-
-The raw data is a cohort of 5000 simulated observations with the following variables: `smoke`, `female`, `age`, `cardiac`, and `cost`.
-
-## Load Packages
+Smoking is associated with numerous cardiovascular risk factors. It may also be associated increased health care costs. In order to practice using reproducible methods, we conducted a study to evaluate whether smoking was associated with increased health care costs in a simulated dataset.
 
 ```{r}
 #| label: package-load
@@ -20,18 +25,24 @@ The raw data is a cohort of 5000 simulated observations with the following varia
 
 #Load packages
 pacman::p_load(pacman, tidyverse, rmarkdown, readxl, table1, ggplot2, geepack)
-```
 
-## Load Dataset
+#Set home directory and load here after tidyverse to avoid conflicts
+here::i_am("README.md")
+p_load(here)
+```
 
 ```{r}
 #| label: data-load
+#| echo: false
+#| warning: false
 
 #Load data
-cohort <- read.csv("D:/VFS Classes/HRP 203/ReproMethodsAssignment2/raw-data/cohort.csv")
+cohort <- read.csv(here("raw-data","cohort.csv"))
 ```
 
-## Quick Look
+## Methods
+
+The raw data is a cohort of 5000 simulated observations with the following variables: `smoke`, `female`, `age`, `cardiac`, and `cost`.
 
 Have a quick look at the data.
 
