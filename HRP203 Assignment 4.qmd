@@ -16,7 +16,7 @@ csl: american-medical-association.csl
 
 ## Background
 
-Smoking is associated with numerous cardiovascular risk factors. It may also be associated increased health care costs. In order to practice using reproducible methods, we conducted a study to evaluate whether smoking was associated with increased health care costs in a simulated dataset.
+Smoking is associated with numerous cardiovascular risk factors.[@virdis_cigarette_2010; @prochaska_smoking_2015] It may also be associated increased health care costs, although some have suggested that smoking cessation will be associated with increased health care costs.[@barendregt_health_1997] In order to practice using reproducible methods, we conducted a study to evaluate whether smoking is associated with increased health care costs in a simulated dataset.
 
 ```{r}
 #| label: package-load
@@ -42,38 +42,71 @@ cohort <- read.csv(here("raw-data","cohort.csv"))
 
 ## Methods
 
-The raw data is a cohort of 5000 simulated observations with the following variables: `smoke`, `female`, `age`, `cardiac`, and `cost`.
-
-Have a quick look at the data.
-
 ```{r}
-#| label: look
-
-#Quick look
-head(cohort)
-
-# Continuous variables - look at distribution and summary statistics, check for missing
-hist(cohort$age, breaks = 100)
-summary(cohort$age)
-hist(cohort$cost)
-summary(cohort$cost)
-table(is.na(cohort$age))
-table(is.na(cohort$cost))
-
-# Categorical variables
-table(cohort$female, useNA = "ifany")
-table(cohort$smoke, useNA = "ifany")
-table(cohort$cardiac, useNA = "ifany")
-
-
+#| label: methods
+#| echo: false
+#| warning: false
 ```
 
-## Table 1
+We analyzed a cohort of simulated observations with the following variables: `smoke`, `female`, `age`, `cardiac`, and `cost`.
 
-Generate a Table 1 - will treat smoking as the primary exposure and cost as the primary outcome.
+We first report descriptive statistics for the cohort and analyze the unadjusted relationship between smoking and cost. To account for possible confounders, we also fit a linear regression model:
+
+$cost_i = \beta_0 + \beta_1 smoke_i + \beta_2 female_i + \beta_3 age_i + \beta_4 cardiac_i + \epsilon_i$
+
+for $i = 1,...,n$. Analysis was conducted on June 1, 2025.
+
+## Results
 
 ```{r}
+#| label: results_descriptive
+#| echo: false
+#| warning: false
+
+# Counts to use in the prose
+female_counts <- cohort %>% count(female)
+female_pct <- female_counts *100 / nrow(cohort)
+
+#Cost by groups
+cost_by_smoker_mean <- cohort %>% group_by(smoke) %>% summarize(Mean = mean(cost))
+cost_by_gender_mean <- cohort %>% group_by(female) %>% summarize(Mean = mean(cost))
+cost_by_gender_sd <- cohort %>% group_by(female) %>% summarize(SD = sd(cost))
+```
+
+There were `{r} format(nrow(cohort), big.mark = ",")` simulated observations, of whom `{r} format(female_counts[2,2], big.mark = ",")` / `{r} format(nrow(cohort), big.mark = ",")` (`{r} format(round(female_pct[2,2], digits = 1), big.mark = ",")`%) were female [(Table 1)](#table_1). The mean age was `{r} format(round(mean(cohort$age), digits = 1), big.mark = ",")` (standard deviation `{r} format(round(sd(cohort$age), digits = 1), big.mark = ",")`) years. The average cost in the cohort was \$`{r} round(mean(cohort$cost), digits = 0)` (standard deviation \$`{r} round(sd(cohort$cost), digits = 0)`), with an average cost of \$`{r} round(cost_by_smoker_mean[2,2], digits = 0)` among smokers and \$`{r} round(cost_by_smoker_mean[1,2])` among nonsmokers [(Figure 1)](#figure_1). Average costs were \$`{r} round(cost_by_gender_mean[1,2])` (standard deviation \$`{r} round(cost_by_gender_sd[1,2])`) among males and \$`{r} round(cost_by_gender_mean[2,2])` (standard deviation \$`{r} round(cost_by_gender_sd[2,2])`) among females [(Figure 2)](#figure_2). Finally, increasing age was associated with increased cost [(Figure 3)](#figure_3).
+
+```{r}
+#| label: results_regression
+#| echo: false
+#| warning: false
+
+#Regression
+adj_model <- lm(cost ~ age + female + smoke + cardiac, data=cohort)
+coefs <- coef(adj_model)
+cis <- confint(adj_model)
+```
+
+In adjusted analysis, smoking was associated with \$`{r} round(coefs[4])` (95% confidence interval \$`{r} round(cis[4,1])` to \$`{r} round(cis[4,2])`) of additional cost. 
+
+## Discussion
+We report a brief analysis examining the relationship between smoking and cost in a simulated dataset. In both unadjusted and adjusted analyses, smoking was associated with higher costs. We also demonstrate several features of reproducible reports, including in-line citations using citation style language to specify the format, relative file paths, embedded code for analyses with linked tables and figures, and inline math notation.
+
+## Generative AI Statement
+No generative AI technology was used to complete any portion of this assignment.
+
+## References
+::: {#refs}
+:::
+
+{{< pagebreak >}}
+
+## Tables
+
+###### Table 1. Cohort Characteristics by Smoking Status {#table_1}
+```{r}
 #| label: table1
+#| echo: false
+#| warning: false
 
 #Some formatting
 cohort$smoke <- 
@@ -101,12 +134,14 @@ table1(~age + female + cardiac + cost | smoke,
 
 ```
 
+
 ## Figures
 
-Generate some figures showing the relationships between variables of interest.
-
+###### Figure 1. Cost by Smoking Status {#figure_1}
 ```{r}
 #| label: figure1
+#| echo: false
+#| warning: false
 
 #Cost by smoking status
 ggplot(cohort, aes(x = smoke, y = cost, fill = smoke)) + 
@@ -114,13 +149,21 @@ ggplot(cohort, aes(x = smoke, y = cost, fill = smoke)) +
   labs(
     x = "Smoking Status",
     y = "Cost (USD)",
-    title = "Cost by Smoking Status"
+    title = ""
   ) +
   theme_minimal() +  # White background
   scale_fill_manual(values = c("blue", "darkgreen")) +
   theme(
     plot.title = element_text(hjust = 0.5),  # Center the title
   )
+
+```
+
+###### Figure 2. Cost by Gender {#figure_2}
+```{r}
+#| label: figure2
+#| echo: false
+#| warning: false
 
 #Cost by gender
 ggplot(cohort, aes(x = female, y = cost, fill = female)) + 
@@ -128,7 +171,7 @@ ggplot(cohort, aes(x = female, y = cost, fill = female)) +
   labs(
     x = "Female",
     y = "Cost (USD)",
-    title = "Cost by Gender"
+    title = ""
   ) +
   theme_minimal() +  # White background
   scale_fill_manual(values = c("blue", "darkgreen")) +
@@ -136,34 +179,26 @@ ggplot(cohort, aes(x = female, y = cost, fill = female)) +
     plot.title = element_text(hjust = 0.5),  # Center the title
   )
 
+```
+
+###### Figure 3. Age versus Cost {#figure_3}
+```{r}
+#| label: figure3
+#| echo: false
+#| warning: false
+#| 
 #Age and cost scatter
 ggplot(cohort, aes(x = age, y = cost)) + 
   geom_point(color = "blue", alpha = 0.7) +
   labs(
     x = "Age (years)",
     y = "Cost (USD)",
-    title = "Age versus Cost",
+    title = ""
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5),  # Center the title
   )
 
-
 ```
 
-## Regression-Based Approach
-
-Run a quick linear regression to test the adjusted relationship between `smoke` and `cost`.
-
-```{r}
-#| label: regression
-
-#Regression
-adj_model <- lm(cost ~ age + female + smoke + cardiac, data=cohort)
-coef(adj_model)
-confint(adj_model)
-
-```
-
-In this linear regression model, smoking is associated with 542 of additional cost.
